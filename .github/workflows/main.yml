@@ -1,0 +1,42 @@
+name: Build Warehouse APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'MonalisaWarehouse-AndroidStudio.zip'
+      - '.github/workflows/main.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract Android project
+        run: |
+          unzip -o MonalisaWarehouse-AndroidStudio.zip -d project
+          find project -maxdepth 3 -type f | head -100
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: '8.10'
+
+      - name: Build APK
+        working-directory: project/MonalisaWarehouse
+        run: gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Monalisa-Warehouse-APK
+          path: project/MonalisaWarehouse/app/build/outputs/apk/debug/*.apk
